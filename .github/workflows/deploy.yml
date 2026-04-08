@@ -30,13 +30,10 @@ jobs:
         with:
           azcliversion: latest
           inlineScript: |
-            az account clear
-            az config set extension.use_dynamic_install=yes_without_prompt
-            
             az webapp config container set \
               --name portfolio-api-app \
               --resource-group portfolio-rg \
-              --docker-custom-image-name-user admin \
+              --docker-custom-image-name ${{ secrets.REGISTRY_LOGIN_SERVER }}/portfolio:${{ github.sha }} \
               --docker-registry-server-url https://${{ secrets.REGISTRY_LOGIN_SERVER }} \
               --docker-registry-server-user ${{ secrets.REGISTRY_USERNAME }} \
               --docker-registry-server-password ${{ secrets.REGISTRY_PASSWORD }}
