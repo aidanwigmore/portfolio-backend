@@ -13,6 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
       - name: Login to Container Registry
         uses: azure/docker-login@v1
         with:
@@ -26,18 +31,15 @@ jobs:
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/portfolio:${{ github.sha }}
       
       - name: Deploy to App Service
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            az webapp config container set \
-              --name portfolio-api-app \
-              --resource-group portfolio-rg \
-              --docker-custom-image-name ${{ secrets.REGISTRY_LOGIN_SERVER }}/portfolio:${{ github.sha }} \
-              --docker-registry-server-url https://${{ secrets.REGISTRY_LOGIN_SERVER }} \
-              --docker-registry-server-user ${{ secrets.REGISTRY_USERNAME }} \
-              --docker-registry-server-password ${{ secrets.REGISTRY_PASSWORD }}
-            
-            az webapp restart \
-              --name portfolio-api-app \
-              --resource-group portfolio-rg
+        run: |
+          az webapp config container set \
+            --name portfolio-api-app \
+            --resource-group portfolio-rg \
+            --container-image-name ${{ secrets.REGISTRY_LOGIN_SERVER }}/portfolio:${{ github.sha }} \
+            --container-registry-url https://${{ secrets.REGISTRY_LOGIN_SERVER }} \
+            --container-registry-user ${{ secrets.REGISTRY_USERNAME }} \
+            --container-registry-password ${{ secrets.REGISTRY_PASSWORD }}
+          
+          az webapp restart \
+            --name portfolio-api-app \
+            --resource-group portfolio-rg
